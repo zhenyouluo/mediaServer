@@ -12,8 +12,6 @@
 #include"CMyRTSPServer.h"
 #include"CMediaState.h"
 
-#include"HelpFunc.h"
-
 #define IMPLEMENT_RTSPSERVER 1
 
 
@@ -46,10 +44,19 @@ public:
   *   CODEC_ID_H264
   */
   //this Constructor for RTSP
-  CCreateRTPServer(CMediaState *ptrState, CPacketQueue *paudioSourceQueue, enum AVCodecID audioEncodeID, CPacketQueue *pvideoSourceQueue, enum AVCodecID videoEncodeID, unsigned short rtpPortNum, unsigned short rtspPortNum, unsigned char ttl = 255);
+  CCreateRTPServer(CMediaState *ptrState, CPacketQueue *paudioSourceQueue,
+                   enum AVCodecID audioEncodeID, CPacketQueue *pvideoSourceQueue,
+                   enum AVCodecID videoEncodeID, unsigned short rtpPortNum,
+                   unsigned short rtspPortNum, unsigned char ttl = 255);
 
   //this Constructor for  Audio or Video only.
-  CCreateRTPServer(CMediaState *ptrState,CPacketQueue *pSourceQueue, enum AVCodecID EncodeID, unsigned short rtpPortNum, unsigned short rtspPortNum , unsigned char ttl = 255);
+  CCreateRTPServer(CMediaState *ptrState,CPacketQueue *pSourceQueue, enum AVCodecID EncodeID,
+                   unsigned short rtpPortNum, unsigned short rtspPortNum ,
+                   unsigned char ttl = 255);
+  /*
+   CCreateRTPServer(CMediaState *pStrState, CReadPacket *pInput, unsigned short rtpPortNum,
+                   unsigned short rtspPortNum, unsigned char ttl = 255);
+  */
 
   ~CCreateRTPServer();
 
@@ -58,6 +65,7 @@ public:
   void play();
   void update(MEDIA_STATE_ENUM state);
   void setRTPAddress(const string &addr);
+  string rtspPlayAddress() const;
 private:
   void init();
   void uninit();
@@ -85,8 +93,10 @@ private:
   bool m_rtpEnableRTSP;
   bool m_initFlag;
   sessionState_t sessionState;
-  CMyRTSPServer *rtspServer;
-  ServerMediaSession *sms;
+  CMyRTSPServer *m_pRtspServer;
+  ServerMediaSession *m_sms;
+  string m_rtspPlayAddress;
+
 };
 #endif
 

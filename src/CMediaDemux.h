@@ -41,12 +41,16 @@ public:
   {
     return m_videoCodeId;
   }
+  double videoFPS()const{
+      return m_videoFPS;
+  }
 private:
   void setUp();
   void unSetUp();
 
 private:
   AVFormatContext *m_pFormatCtx;
+
   AVCodec *m_pvideoCodec;
   AVCodecContext *m_pvideoCodecContext;
   int m_videoStreamIndex;
@@ -61,6 +65,7 @@ private:
   int64_t best_effort_timestamp;
 
   const char *m_pSrcFile;
+  double m_videoFPS;
 
   bool m_notSetUp;
 };

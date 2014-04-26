@@ -1,32 +1,30 @@
-#include "CVideoSubSource.h"
+#include "CMPEGVideoSubSource.h"
 
-CVideoSubSource* CVideoSubSource::createNew(UsageEnvironment &env, CPacketQueue *mediaSourceQueue)
+CMPEGVideoSubSource* CMPEGVideoSubSource::createNew(UsageEnvironment &env, CPacketQueue *mediaSourceQueue,
+                                            double fps)
 {
-  return new CVideoSubSource(env, mediaSourceQueue);
+  return new CMPEGVideoSubSource(env, mediaSourceQueue, fps);
 }
-CVideoSubSource::CVideoSubSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue)
-:CCMediaSource(env, mediaSourceQueue),m_uSecsPerFrame(40000/* 1000000/25 */)
+CMPEGVideoSubSource::CMPEGVideoSubSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue, double fps)
+:CCMediaSource(env, mediaSourceQueue),m_uSecsPerFrame( 1000000.0/fps)
 {
   //nothing
 }
-CVideoSubSource::~CVideoSubSource()
+CMPEGVideoSubSource::~CMPEGVideoSubSource()
 {
   //nothing
 }
-bool CVideoSubSource::deliverFrame()
+bool CMPEGVideoSubSource::deliverFrame()
 {
-#ifdef PRINTQUEUEINFO
-  cout << "VideoSource Queue size " << fMediaSourceQueue->Size() << endl;
-#endif
   AVPacket tempPacket;
-  LOG(LOG_TYPE_FATAL, "CVideoSource Queue Size:%d\n", fMediaSourceQueue->Size());
-  if(fMediaSourceQueue->Pop(&tempPacket))
+  if(m_pMediaSourceQueue->Pop(&tempPacket))
   {	
     fFrameSize = tempPacket.size;
     if (fFrameSize > fMaxSize)
     {
       fNumTruncatedBytes = fFrameSize - fMaxSize;
-      LOG(LOG_TYPE_NOTICE, "CVideoSubSource Frame fNumTruncatedBytes : %d Bytes!\n",fNumTruncatedBytes);
+      LOG(LOG_TYPE_NOTICE, "CVideoSubSource Frame fNumTruncatedBytes : %d Bytes!\n",
+          fNumTruncatedBytes);
       fFrameSize = fMaxSize;
     }
     else
@@ -44,7 +42,7 @@ bool CVideoSubSource::deliverFrame()
     else
     {
       // Increment by the play time of the previous frame:
-      unsigned uSeconds = fPresentationTime.tv_usec + m_uSecsPerFrame;
+      unsigned uSeconds = (unsigned)(fPresentationTime.tv_usec + m_uSecsPerFrame);
       fPresentationTime.tv_sec += uSeconds/1000000;
       fPresentationTime.tv_usec = uSeconds%1000000;
     }  

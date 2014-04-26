@@ -1,4 +1,4 @@
-#include "CAACAudioSource.h"
+#include "CAACAudioSubSource.h"
 
 static unsigned const samplingFrequencyTable[16] = {
   96000, 88200, 64000, 48000,
@@ -7,9 +7,9 @@ static unsigned const samplingFrequencyTable[16] = {
   7350, 0, 0, 0
 };
 
-CAACAudioSource *CAACAudioSource::createNew(UsageEnvironment &env, CPacketQueue *dataPacketQueue)
+CAACAudioSubSource *CAACAudioSubSource::createNew(UsageEnvironment &env, CPacketQueue *dataPacketQueue)
 {
-  CAACAudioSource *ptrSource = NULL;
+  CAACAudioSubSource *ptrSource = NULL;
 
   if(dataPacketQueue->Size() != 0)
   {
@@ -33,43 +33,39 @@ CAACAudioSource *CAACAudioSource::createNew(UsageEnvironment &env, CPacketQueue 
         env.setResultMsg("Bad (reserved) 'profile': 3 in first frame of ADTS file");
         return ptrSource;
       }
-      ptrSource =  new CAACAudioSource(env, dataPacketQueue, sampling_frequency_index, channelConfiguration, profile);
+      ptrSource =  new CAACAudioSubSource(env, dataPacketQueue, sampling_frequency_index, channelConfiguration, profile);
     }
 
   }
   return ptrSource;
 }
-CAACAudioSource::CAACAudioSource(UsageEnvironment &env, CPacketQueue *dataPacketQueue, u_int8_t sampling_frequency_index,
+CAACAudioSubSource::CAACAudioSubSource(UsageEnvironment &env, CPacketQueue *dataPacketQueue, u_int8_t sampling_frequency_index,
                                  u_int8_t channelConfiguration, u_int8_t profile)
                                 :CCMediaSource(env, dataPacketQueue)
 {
-  fSamplingFrequency = samplingFrequencyTable[sampling_frequency_index];
+  m_samplingFrequency = samplingFrequencyTable[sampling_frequency_index];
 
-  cout << "AACAudioSource fSamplingFrequency is " << fSamplingFrequency << endl;
-  m_uSecsPerFrame = ((1024/*samples-per-frame*/*1000000 *2) / fSamplingFrequency/*samples-per-second*/+1)/2;//rounds to nearest integer
+  cout << "AACAudioSource fSamplingFrequency is " << m_samplingFrequency << endl;
+  m_uSecsPerFrame = ((1024/*samples-per-frame*/*1000000 *2) / m_samplingFrequency/*samples-per-second*/+1)/2;//rounds to nearest integer
 
-  fNumChannels = channelConfiguration == 0 ? 2 : channelConfiguration;
+  m_numChannels = channelConfiguration == 0 ? 2 : channelConfiguration;
   unsigned char audioSpecificConfig[2];
   u_int8_t const audioObjectType = profile + 1;
   audioSpecificConfig[0] = (audioObjectType<<3) | (sampling_frequency_index>>1);
   audioSpecificConfig[1] = (sampling_frequency_index<<7) | (channelConfiguration<<3);
-  sprintf(fConfigStr, "%02X%02x", audioSpecificConfig[0], audioSpecificConfig[1]);
+  sprintf(m_configStr, "%02X%02x", audioSpecificConfig[0], audioSpecificConfig[1]);
 }
-CAACAudioSource::~CAACAudioSource()
+CAACAudioSubSource::~CAACAudioSubSource()
 {
   //nothing
 }
 
-bool CAACAudioSource::deliverFrame()
+bool CAACAudioSubSource::deliverFrame()
 {
   AVPacket avk;
   unsigned char headers[7];
 
-#ifdef PRINTQUEUEINFO
-  cout << "AudioSource Queue Size: " << fMediaSourceQueue->Size() << endl;
-#endif
-  LOG(LOG_TYPE_FATAL, "CAACaudioSource Queue Size:%d\n",fMediaSourceQueue->Size());
-  if(fMediaSourceQueue->Pop(&avk))
+  if(m_pMediaSourceQueue->Pop(&avk))
   {
     int header_size = sizeof(headers);
     memcpy(headers, avk.data, header_size);

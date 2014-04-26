@@ -1,29 +1,28 @@
-#include "CH264VideoSource.h"
+#include "CH264VideoSubSource.h"
 
-CH264VideoSource* CH264VideoSource::createNew(UsageEnvironment &env, CPacketQueue *mediaSourceQueue)
+CH264VideoSubSource* CH264VideoSubSource::createNew(UsageEnvironment &env,
+                                                    CPacketQueue *mediaSourceQueue,
+                                                    double fps)
 {
-  return new CH264VideoSource(env, mediaSourceQueue);
+  return new CH264VideoSubSource(env, mediaSourceQueue, fps);
 }
-CH264VideoSource::CH264VideoSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue) :CCMediaSource(env, mediaSourceQueue),m_uSecsPerFrame(40000/* 1000000/25 */)
+CH264VideoSubSource::CH264VideoSubSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue,
+                                         double fps)
+    :CCMediaSource(env, mediaSourceQueue),m_uSecsPerFrame(1000000/fps)
 {
   //nothing
 }
 
-CH264VideoSource::~CH264VideoSource()
+CH264VideoSubSource::~CH264VideoSubSource()
 {
   //nothing
 }
 
-bool CH264VideoSource::deliverFrame()
+bool CH264VideoSubSource::deliverFrame()
 {
-#ifdef PRINTQUEUEINFO
-  cout << "H264 Video Queue size " << fMediaSourceQueue->Size() << endl;
-#endif
-
-  LOG(LOG_TYPE_FATAL, "CH264Source Queue Size: %d\n", fMediaSourceQueue->Size());
-  //cout << "H264 Video Queue size " << fMediaSourceQueue->Size() << endl;
   AVPacket tempPacket;
-  if(fMediaSourceQueue->Pop(&tempPacket))
+ // cout << "H264 Video SubSource Queue Size:" << m_pMediaSourceQueue->Size() << endl;
+  if(m_pMediaSourceQueue->Pop(&tempPacket))
   {	
     fFrameSize = tempPacket.size;
     unsigned skip = 0;
@@ -66,7 +65,7 @@ bool CH264VideoSource::deliverFrame()
     else
     {
       // Increment by the play time of the previous frame:
-      unsigned uSeconds = fPresentationTime.tv_usec + m_uSecsPerFrame;
+      unsigned uSeconds = (unsigned)(fPresentationTime.tv_usec + m_uSecsPerFrame);
       fPresentationTime.tv_sec += uSeconds/1000000;
       fPresentationTime.tv_usec = uSeconds%1000000;
     }  

@@ -1,4 +1,4 @@
-#include "CAudioSubSource.h"
+#include "CMP2orMP3orAC3AudioSubSource.h"
 
 //work for mp2 and mp3 audio frame!
 static unsigned getMP2orMP3SamplingFreq(AVPacket *MP2orMP3Packet)
@@ -61,7 +61,7 @@ static unsigned getAC3SamplingFreq(AVPacket *ac3packet)
   return samplingFreq;
 }
 
-CAudioSubSource* CAudioSubSource::createNew(UsageEnvironment &env, CPacketQueue *mediaSourceQueue, enum AVCodecID encodeID)
+CMP2orMP3orAC3AudioSubSource* CMP2orMP3orAC3AudioSubSource::createNew(UsageEnvironment &env, CPacketQueue *mediaSourceQueue, enum AVCodecID encodeID)
 {
   unsigned uSecsPerFrame = 0;
   unsigned numSamplesPerFrame = 0;
@@ -107,22 +107,24 @@ CAudioSubSource* CAudioSubSource::createNew(UsageEnvironment &env, CPacketQueue 
     return NULL;
   }
   cout <<"numSamplesPerFrame == "<< numSamplesPerFrame << "\t"<< "uSecsPerFrame == " << uSecsPerFrame << endl;
-  return new CAudioSubSource(env, mediaSourceQueue,numSamplesPerFrame, uSecsPerFrame);
+  return new CMP2orMP3orAC3AudioSubSource(env, mediaSourceQueue,numSamplesPerFrame, uSecsPerFrame);
 }
-CAudioSubSource::CAudioSubSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue, unsigned sampleFreq, unsigned uSecsPerFrame) :CCMediaSource(env, mediaSourceQueue), m_samplesFreq(sampleFreq),m_uSecsPerFrame(uSecsPerFrame)
+
+CMP2orMP3orAC3AudioSubSource::CMP2orMP3orAC3AudioSubSource(UsageEnvironment &env,
+                                                           CPacketQueue *mediaSourceQueue,
+                                                           unsigned sampleFreq, unsigned uSecsPerFrame)
+    :CCMediaSource(env, mediaSourceQueue), m_samplesFreq(sampleFreq),m_uSecsPerFrame(uSecsPerFrame)
 {
 }
-CAudioSubSource::~CAudioSubSource()
+CMP2orMP3orAC3AudioSubSource::~CMP2orMP3orAC3AudioSubSource()
 {
 }
 
-bool CAudioSubSource::deliverFrame()
+bool CMP2orMP3orAC3AudioSubSource::deliverFrame()
 {
   AVPacket tempPkt;
 
-  //cout << "AudioSource Queue Size " << fMediaSourceQueue->Size() << endl;
-  //LOG(LOG_TYPE_ERROR, "AudioSource Queue Size: %d\n", fMediaSourceQueue->Size());
-  if(fMediaSourceQueue->Pop(&tempPkt))
+  if(m_pMediaSourceQueue->Pop(&tempPkt))
   {
     fFrameSize = tempPkt.size;
     if (fFrameSize > fMaxSize)

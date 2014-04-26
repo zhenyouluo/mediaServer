@@ -1,35 +1,40 @@
 
 #include "CCMediaSource.h"
 
-unsigned CCMediaSource::delayTime = 10;
+unsigned CCMediaSource::delayTime = 100;
 
 CCMediaSource::CCMediaSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue)
-:FramedSource(env), fMediaSourceQueue(mediaSourceQueue)
+    :FramedSource(env), m_pMediaSourceQueue(mediaSourceQueue)
 {
-  //nothing
-  //
+    //nothing
+    //
 }
 CCMediaSource::~CCMediaSource()
 {
-  //nothing
+    //nothing
 }
 void CCMediaSource::doGetNextFrame()
 {
-  if(!deliverFrame())
-  {
-    fwatchVariable = 0;
-    nextTask() =  envir().taskScheduler().scheduleDelayedTask(delayTime, (TaskFunc*)delay, this);
-    envir().taskScheduler().doEventLoop(&fwatchVariable);
-    //try again to get and deliver media data to the sink!
-    doGetNextFrame();
-  }
-}
-bool CCMediaSource::deliverFrame()
-{
-  return false;
+    if(!deliverFrame())
+    {
+        /*
+        m_watchVariable = 0;
+        nextTask() = envir().taskScheduler().scheduleDelayedTask(delayTime,
+                                                                 (TaskFunc*)delay, this);
+        envir().taskScheduler().doEventLoop(&m_watchVariable);
+        */
+
+        //try again to get and deliver media data to the sink!
+        //doGetNextFrame();
+    }
+
 }
 void CCMediaSource::delay(void *data)
 {
-  CCMediaSource *framer = (CCMediaSource *)data;
-  framer->fwatchVariable = ~0;
+    CCMediaSource *framer = (CCMediaSource *)data;
+    framer->setWatchVariable();
+}
+void CCMediaSource::setWatchVariable()
+{
+    m_watchVariable = ~0;
 }

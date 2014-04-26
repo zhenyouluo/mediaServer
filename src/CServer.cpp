@@ -8,7 +8,8 @@ void* ThreadFunc(void *arg)
   return 0;
 }
 
-CServer::CServer(const string &inputFile, unsigned short rtpNum, unsigned short rtspNum, unsigned char ttl)
+CServer::CServer(const string &inputFile, unsigned short rtpNum, unsigned short rtspNum,
+                 unsigned char ttl)
   :m_pServer(NULL), m_pInput(NULL)
 {
   m_pMediaState = new CMediaState;
@@ -19,7 +20,7 @@ CServer::CServer(const string &inputFile, unsigned short rtpNum, unsigned short 
   }
 
   const char *ptr = inputFile.c_str();
-  m_pInput = new CReadPacket(m_pMediaState,ptr);
+  m_pInput = new CReadPacket(m_pMediaState, ptr);
   if(NULL == m_pInput)
   {
     cout << "Create input reader failed!\n" << endl;
@@ -29,15 +30,24 @@ CServer::CServer(const string &inputFile, unsigned short rtpNum, unsigned short 
   m_paudioSourceQueue = m_pInput->audioMediaSourceQueue();
   if(m_pVideoSourceQueue && m_paudioSourceQueue)
   {
-    m_pServer = new CCreateRTPServer(m_pMediaState,m_paudioSourceQueue, m_pInput->audioCodeId(), m_pVideoSourceQueue, m_pInput->videoCodeId(), rtpNum, rtspNum, ttl);
+    m_pServer = new CCreateRTPServer(m_pMediaState,m_paudioSourceQueue,
+                                     m_pInput->audioCodeId(), m_pVideoSourceQueue,
+                                     m_pInput->videoCodeId(), rtpNum, rtspNum, ttl);
   }
   else if (m_pVideoSourceQueue)
   {
-    m_pServer = new CCreateRTPServer(m_pMediaState,m_pVideoSourceQueue, m_pInput->videoCodeId(), rtpNum, rtspNum, ttl);
+    m_pServer = new CCreateRTPServer(m_pMediaState,m_pVideoSourceQueue,
+                                     m_pInput->videoCodeId(), rtpNum, rtspNum, ttl);
   }
   else if(m_paudioSourceQueue)
   {
-    m_pServer = new CCreateRTPServer(m_pMediaState, m_paudioSourceQueue, m_pInput->audioCodeId(), rtpNum, rtspNum, ttl);
+    m_pServer = new CCreateRTPServer(m_pMediaState, m_paudioSourceQueue,
+                                     m_pInput->audioCodeId(), rtpNum, rtspNum, ttl);
+  }
+  if(NULL == m_pServer)
+  {
+      cout << "Create Server Failed!" << endl;
+      exit(1);
   }
 }
 CServer::~CServer()

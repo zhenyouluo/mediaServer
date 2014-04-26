@@ -19,6 +19,7 @@ public:
 
   enum AVCodecID audioCodeId()const;
   enum AVCodecID videoCodeId()const;
+  double videoFPS()const;
 
 private:
   CMediaDemux *m_pDemux;
@@ -28,5 +29,6 @@ private:
 
   MEDIA_STATE_ENUM m_state;
   CMediaState *m_pSubState;
+  const char *m_pSrcFileName;
 };
 #endif

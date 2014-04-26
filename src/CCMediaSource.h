@@ -11,18 +11,19 @@
 
 class CCMediaSource:public FramedSource
 {
-  public:
+public:
     CCMediaSource(UsageEnvironment &env, CPacketQueue *mediaSourceQueue);
     virtual ~CCMediaSource();
-    char fwatchVariable;
-  private:
+
+    void setWatchVariable();
+private:
     virtual void doGetNextFrame();
-    virtual bool deliverFrame();    
+    virtual bool deliverFrame() = 0;
     static void delay(void *data);
     static unsigned delayTime;
+    char m_watchVariable;
 
-  protected:
-    CPacketQueue *fMediaSourceQueue;
-
+protected:
+    CPacketQueue *m_pMediaSourceQueue;
 };
 #endif

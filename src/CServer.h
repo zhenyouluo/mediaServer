@@ -12,7 +12,8 @@ using namespace std;
 class CServer
 {
 public:
-  explicit CServer(const string &inputFile, unsigned short rtpNum, unsigned short rtspNum = 8554,
+  explicit CServer(const string &inputFile, unsigned short rtpNum,
+                   unsigned short rtspNum = 8554,
                    unsigned char ttl = 255);
   ~CServer();
   void start();
