@@ -14,20 +14,6 @@
 
 #define IMPLEMENT_RTSPSERVER 1
 
-
-struct sessionState_t {
-  FramedSource *audioSource;
-  FramedSource *videoSource;
-  Groupsock *rtpGroupsockAudio;
-  Groupsock *rtcpGroupsockAudio;
-  Groupsock *rtpGroupsockVideo;
-  Groupsock *rtcpGroupsockVideo;
-  RTPSink *audioSink;
-  RTPSink *videoSink;
-  RTCPInstance *videoInstance;
-  RTCPInstance *audioInstance;
-};
-
 class CCreateRTPServer:public CObserver
 {
 public:
@@ -92,11 +78,20 @@ private:
 
   bool m_rtpEnableRTSP;
   bool m_initFlag;
-  sessionState_t sessionState;
   CMyRTSPServer *m_pRtspServer;
   ServerMediaSession *m_sms;
   string m_rtspPlayAddress;
 
+  FramedSource *m_paudioSource;
+  FramedSource *m_pvideoSource;
+  Groupsock *m_prtpGroupsockAudio;
+  Groupsock *m_prtcpGroupsockAudio;
+  Groupsock *m_prtpGroupsockVideo;
+  Groupsock *m_prtcpGroupsockVideo;
+  RTPSink *m_paudioSink;
+  RTPSink *m_pvideoSink;
+  RTCPInstance *m_pvideoInstance;
+  RTCPInstance *m_paudioInstance;
 };
 #endif
 

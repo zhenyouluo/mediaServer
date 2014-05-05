@@ -47,7 +47,7 @@ void CMediaDemux::setUp()
   {
     m_videoStreamIndex = -1;
     m_videoCodeId = AV_CODEC_ID_NONE;
-    cerr << "Could not find " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " stream in file "<< m_pSrcFile << endl;
+   // cerr << "Could not find " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " stream in file "<< m_pSrcFile << endl;
   }
   else
   {
@@ -59,7 +59,7 @@ void CMediaDemux::setUp()
 
     if (avcodec_open2(m_pvideoCodecContext, m_pvideoCodec, NULL) < 0)
     {
-      cerr << "Failed to open " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " codec" << endl;
+      //cerr << "Failed to open " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " codec" << endl;
       exit(1);
     }
   }
@@ -69,7 +69,7 @@ void CMediaDemux::setUp()
   {
     m_audioStreamIndex = -1;
     m_audioCodeId = AV_CODEC_ID_NONE;
-    cerr << "Could not find " << av_get_media_type_string(AVMEDIA_TYPE_AUDIO) << " stream in file "<< m_pSrcFile << endl;
+    //cerr << "Could not find " << av_get_media_type_string(AVMEDIA_TYPE_AUDIO) << " stream in file "<< m_pSrcFile << endl;
   }
   else
   {
@@ -78,7 +78,7 @@ void CMediaDemux::setUp()
     m_audioCodeId = m_paudioCodec->id;
     if (avcodec_open2(m_paudioCodecContext, m_paudioCodec, NULL) < 0)
     {
-      cerr << "Failed to open " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " codec" << endl;
+     // cerr << "Failed to open " << av_get_media_type_string(AVMEDIA_TYPE_VIDEO) << " codec" << endl;
       exit(1);
     }
   }

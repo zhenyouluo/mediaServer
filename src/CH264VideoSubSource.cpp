@@ -31,7 +31,8 @@ bool CH264VideoSubSource::deliverFrame()
     if(fFrameSize >= 4)
     {
       memcpy(headers, tempPacket.data, sizeof(headers));
-      if(headers[0] == 0 && headers[1] == 0 && ((headers[2] == 0 && headers[3] == 1) || headers[2] == 1))
+      if(headers[0] == 0 && headers[1] == 0 &&
+              ((headers[2] == 0 && headers[3] == 1) || headers[2] == 1))
       {
         if(headers[2] == 1)
         {
@@ -48,7 +49,8 @@ bool CH264VideoSubSource::deliverFrame()
     {
       //index ++; 
       fNumTruncatedBytes = fFrameSize - fMaxSize;
-      LOG(LOG_TYPE_NOTICE, "CH264VideoSource Frame fNumTruncatedBytes: %d Bytes!\n",fNumTruncatedBytes);
+      LOG(LOG_TYPE_NOTICE, "CH264VideoSource Frame fNumTruncatedBytes: %d Bytes!\n",
+          fNumTruncatedBytes);
       fFrameSize = fMaxSize;
     }
     else

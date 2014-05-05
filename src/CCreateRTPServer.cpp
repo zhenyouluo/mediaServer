@@ -98,10 +98,10 @@ void CCreateRTPServer::init()
 }
 void CCreateRTPServer::createGroupsock()
 {
-    sessionState.rtcpGroupsockAudio = NULL;
-    sessionState.rtpGroupsockAudio = NULL;
-    sessionState.rtcpGroupsockVideo = NULL;
-    sessionState.rtpGroupsockVideo = NULL;
+    m_prtcpGroupsockAudio = NULL;
+    m_prtpGroupsockAudio = NULL;
+    m_prtcpGroupsockVideo = NULL;
+    m_prtpGroupsockVideo = NULL;
 
     struct in_addr destAddress;
     //destAddress.s_addr = our_inet_addr(m_destAddressStr.c_str());
@@ -116,9 +116,9 @@ void CCreateRTPServer::createGroupsock()
         const unsigned short rtcpPortNumAudio = rtpPortNumAudio + 1;
         const Port rtpPortAudio(rtpPortNumAudio);
         const Port rtcpPortAudio(rtcpPortNumAudio);
-        sessionState.rtpGroupsockAudio = new Groupsock(*env, destAddress, rtpPortAudio, m_ttl);
-        sessionState.rtcpGroupsockAudio = new Groupsock(*env, destAddress, rtcpPortAudio, m_ttl);
-        if(sessionState.rtpGroupsockAudio && sessionState.rtcpGroupsockAudio)
+        m_prtpGroupsockAudio = new Groupsock(*env, destAddress, rtpPortAudio, m_ttl);
+        m_prtcpGroupsockAudio = new Groupsock(*env, destAddress, rtcpPortAudio, m_ttl);
+        if(m_prtpGroupsockAudio && m_prtcpGroupsockAudio)
         {
             m_rtpPortNum += 2;
         }
@@ -130,17 +130,17 @@ void CCreateRTPServer::createGroupsock()
         const unsigned short rtcpPortNumVideo = rtpPortNumVideo + 1;
         const Port rtpPortVideo(rtpPortNumVideo);
         const Port rtcpPortVideo(rtcpPortNumVideo);
-        sessionState.rtpGroupsockVideo = new Groupsock(*env, destAddress, rtpPortVideo, m_ttl);
-        sessionState.rtcpGroupsockVideo = new Groupsock(*env, destAddress, rtcpPortVideo, m_ttl);
+        m_prtpGroupsockVideo = new Groupsock(*env, destAddress, rtpPortVideo, m_ttl);
+        m_prtcpGroupsockVideo = new Groupsock(*env, destAddress, rtcpPortVideo, m_ttl);
     }
 }
 
 void CCreateRTPServer::createSourceAndSink()
 {
-    sessionState.audioSource = NULL;
-    sessionState.audioSink = NULL;
-    sessionState.videoSource = NULL;
-    sessionState.videoSink = NULL;
+    m_paudioSource = NULL;
+    m_paudioSink = NULL;
+    m_pvideoSource = NULL;
+    m_pvideoSink = NULL;
 
     if(m_pAudioSourceQueue != NULL)
     {
@@ -163,9 +163,9 @@ void CCreateRTPServer::createSourceAndSink()
         {
             CMP2orMP3orAC3AudioSubSource *paudiosource = CMP2orMP3orAC3AudioSubSource::
                     createNew(*env, m_pAudioSourceQueue, m_AudioEncodeID);
-            sessionState.audioSource = paudiosource;
+            m_paudioSource = paudiosource;
 
-            sessionState.audioSink = MPEG1or2AudioRTPSink::createNew(*env, sessionState.rtpGroupsockAudio);
+            m_paudioSink = MPEG1or2AudioRTPSink::createNew(*env, m_prtpGroupsockAudio);
         }
             break;
         case AV_CODEC_ID_AAC:
@@ -177,11 +177,11 @@ void CCreateRTPServer::createSourceAndSink()
                 exit(1);
             }
 
-            sessionState.audioSource = paacSource;
-            sessionState.audioSink = MPEG4GenericRTPSink::createNew(*env, sessionState.rtpGroupsockAudio,
-                                                                    97, paacSource->samplingFrequency(),
-                                                                    "audio", "AAC-hbr", paacSource->configStr(),
-                                                                    paacSource->numChannels());
+            m_paudioSource = paacSource;
+            m_paudioSink = MPEG4GenericRTPSink::createNew(*env, m_prtpGroupsockAudio,
+                                                          97, paacSource->samplingFrequency(),
+                                                          "audio", "AAC-hbr", paacSource->configStr(),
+                                                          paacSource->numChannels());
         }
             break;
         case AV_CODEC_ID_AC3:
@@ -193,9 +193,9 @@ void CCreateRTPServer::createSourceAndSink()
                 LOG(LOG_TYPE_FATAL, "create ac3 audio source failed!");
                 exit(1);
             }
-            sessionState.audioSource = paudiosource;
-            sessionState.audioSink = AC3AudioRTPSink::createNew(*env, sessionState.rtpGroupsockAudio,
-                                                                97, paudiosource->getSamples());
+            m_paudioSource = paudiosource;
+            m_paudioSink = AC3AudioRTPSink::createNew(*env, m_prtpGroupsockAudio,
+                                                      97, paudiosource->getSamples());
         }
             break;
         default:
@@ -225,24 +225,24 @@ void CCreateRTPServer::createSourceAndSink()
         case AV_CODEC_ID_H264:
         {
             pvideoES = CH264VideoSubSource::createNew(*env, m_pVideoSourceQueue);
-            sessionState.videoSource = H264VideoStreamDiscreteFramer::createNew(*env, pvideoES);
+            m_pvideoSource = H264VideoStreamDiscreteFramer::createNew(*env, pvideoES);
 
-            sessionState.videoSink = H264VideoRTPSink::createNew(*env, sessionState.rtpGroupsockVideo,96);
+            m_pvideoSink = H264VideoRTPSink::createNew(*env, m_prtpGroupsockVideo,96);
         }
             break;
         case AV_CODEC_ID_MPEG1VIDEO:
         case AV_CODEC_ID_MPEG2VIDEO:
         {
             pvideoES = CMPEGVideoSubSource::createNew(*env, m_pVideoSourceQueue);
-            sessionState.videoSource = MPEG1or2VideoStreamDiscreteFramer::createNew(*env, pvideoES);
-            sessionState.videoSink = MPEG1or2VideoRTPSink::createNew(*env, sessionState.rtpGroupsockVideo);
+            m_pvideoSource = MPEG1or2VideoStreamDiscreteFramer::createNew(*env, pvideoES);
+            m_pvideoSink = MPEG1or2VideoRTPSink::createNew(*env, m_prtpGroupsockVideo);
         }
             break;
         case AV_CODEC_ID_MPEG4:
         {
             pvideoES = CMPEGVideoSubSource::createNew(*env, m_pVideoSourceQueue);
-            sessionState.videoSource = MPEG4VideoStreamDiscreteFramer::createNew(*env,pvideoES);
-            sessionState.videoSink = MPEG4ESVideoRTPSink::createNew(*env,sessionState.rtpGroupsockVideo, 96);
+            m_pvideoSource = MPEG4VideoStreamDiscreteFramer::createNew(*env,pvideoES);
+            m_pvideoSink = MPEG4ESVideoRTPSink::createNew(*env, m_prtpGroupsockVideo, 96);
 
         }
             break;
@@ -259,23 +259,23 @@ void CCreateRTPServer::createRTCPInstance()
     gethostname((char*)CNAME, maxCNAMElen);
     CNAME[maxCNAMElen] = '\0'; // just in case
 
-    sessionState.audioInstance = NULL;
-    sessionState.videoInstance = NULL;
+    m_paudioInstance = NULL;
+    m_pvideoInstance = NULL;
 
-    if(sessionState.audioSink != NULL)
+    if(m_paudioSink != NULL)
     {
         const unsigned estimatedSessionBandwidthAudio = 160; // in kbps; for RTCP b/w share
-        sessionState.audioInstance =  RTCPInstance::createNew(*env, sessionState.rtcpGroupsockAudio,
-                                                              estimatedSessionBandwidthAudio, CNAME,
-                                                              sessionState.audioSink, NULL, False);
+        m_paudioInstance =  RTCPInstance::createNew(*env, m_prtcpGroupsockAudio,
+                                                    estimatedSessionBandwidthAudio, CNAME,
+                                                    m_paudioSink, NULL, False);
     }
 
-    if(sessionState.videoSink != NULL)
+    if(m_pvideoSink != NULL)
     {
         const unsigned estimatedSessionBandwidthVideo = 1000;
-        sessionState.videoInstance =  RTCPInstance::createNew(*env, sessionState.rtcpGroupsockVideo,
-                                                              estimatedSessionBandwidthVideo, CNAME,
-                                                              sessionState.videoSink, NULL, False);
+        m_pvideoInstance =  RTCPInstance::createNew(*env, m_prtcpGroupsockVideo,
+                                                    estimatedSessionBandwidthVideo, CNAME,
+                                                    m_pvideoSink, NULL, False);
     }
 
     if(m_rtpEnableRTSP)
@@ -290,15 +290,15 @@ void CCreateRTPServer::createRTCPInstance()
             exit(1);
         }
 
-        if(sessionState.videoInstance != NULL)
+        if(m_pvideoInstance != NULL)
         {
-            m_sms->addSubsession(PassiveServerMediaSubsession::createNew(*sessionState.videoSink,
-                                                                         sessionState.videoInstance));
+            m_sms->addSubsession(PassiveServerMediaSubsession::createNew(*m_pvideoSink,
+                                                                         m_pvideoInstance));
         }
-        if(sessionState.audioInstance != NULL)
+        if(m_paudioInstance != NULL)
         {
-            m_sms->addSubsession(PassiveServerMediaSubsession::createNew(*sessionState.audioSink,
-                                                                         sessionState.audioInstance));
+            m_sms->addSubsession(PassiveServerMediaSubsession::createNew(*m_paudioSink,
+                                                                         m_paudioInstance));
         }
 
         m_pRtspServer->addServerMediaSession(m_sms);
@@ -316,33 +316,34 @@ void CCreateRTPServer::doPlay()
 
     m_loopExit = false;
     watchLoop = 0;
+
     env->taskScheduler().doEventLoop(&watchLoop);
     m_loopExit = true;
 }
 
 void CCreateRTPServer::play()
 {
-    if(sessionState.videoSource != NULL)
+    if(m_pvideoSource != NULL)
     {
         *env << "Playing Video.....\n";
-        sessionState.videoSink->startPlaying(*sessionState.videoSource, NULL, NULL);
+        m_pvideoSink->startPlaying(*m_pvideoSource, NULL, NULL);
     }
-    if(sessionState.audioSource != NULL)
+    if(m_paudioSource != NULL)
     {
         *env << "Playing Audio.....\n";
-        sessionState.audioSink->startPlaying(*sessionState.audioSource, NULL, NULL);
+        m_paudioSink->startPlaying(*m_paudioSource, NULL, NULL);
     }
 }
 
 void CCreateRTPServer::stopPlay()
 {
-    if(sessionState.audioSink != NULL)
+    if(m_paudioSink != NULL)
     {
-        sessionState.audioSink->stopPlaying();
+        m_paudioSink->stopPlaying();
     }
-    if(sessionState.videoSink != NULL)
+    if(m_pvideoSink != NULL)
     {
-        sessionState.videoSink->stopPlaying();
+        m_pvideoSink->stopPlaying();
     }
 
     stopLoop();
@@ -376,41 +377,41 @@ void CCreateRTPServer::uninit()
         delete m_pRtspServer;
         m_pRtspServer = NULL;
     }
-    if(sessionState.audioSource != NULL)
+    if(m_paudioSource != NULL)
     {
-        Medium::close(sessionState.audioSource);
+        Medium::close(m_paudioSource);
     }
-    if(sessionState.videoSource != NULL)
+    if(m_pvideoSource != NULL)
     {
-        Medium::close(sessionState.videoSource);
+        Medium::close(m_pvideoSource);
     }
-    if(sessionState.audioInstance != NULL)
+    if(m_paudioInstance != NULL)
     {
-        Medium::close(sessionState.audioInstance);
+        Medium::close(m_paudioInstance);
     }
-    if(sessionState.videoInstance != NULL)
+    if(m_pvideoInstance != NULL)
     {
-        Medium::close(sessionState.videoInstance);
+        Medium::close(m_pvideoInstance);
     }
-    if(sessionState.rtpGroupsockAudio != NULL)
+    if(m_prtpGroupsockAudio != NULL)
     {
-        delete sessionState.rtpGroupsockAudio;
-        sessionState.rtpGroupsockAudio = NULL;
+        delete m_prtpGroupsockAudio;
+        m_prtpGroupsockAudio = NULL;
     }
-    if(sessionState.rtcpGroupsockAudio != NULL)
+    if(m_prtcpGroupsockAudio != NULL)
     {
-        delete sessionState.rtcpGroupsockAudio;
-        sessionState.rtcpGroupsockAudio = NULL;
+        delete m_prtcpGroupsockAudio;
+        m_prtcpGroupsockAudio = NULL;
     }
-    if(sessionState.rtpGroupsockVideo != NULL)
+    if(m_prtpGroupsockVideo != NULL)
     {
-        delete sessionState.rtpGroupsockVideo;
-        sessionState.rtpGroupsockVideo = NULL;
+        delete m_prtpGroupsockVideo;
+        m_prtpGroupsockVideo = NULL;
     }
-    if(sessionState.rtcpGroupsockVideo != NULL)
+    if(m_prtcpGroupsockVideo != NULL)
     {
-        delete sessionState.rtcpGroupsockVideo;
-        sessionState.rtcpGroupsockVideo = NULL;
+        delete m_prtcpGroupsockVideo;
+        m_prtcpGroupsockVideo = NULL;
     }
     env->reclaim();
 }
